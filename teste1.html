@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AJAX Request Example</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <table id="data-table" border="1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    $(document).ready(function() {
+      $.ajax({
+        url: 'teste.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          // Build the HTML table rows using map
+          var tableRows = response.map(function(obj) {
+            return '<tr>' +
+              '<td>' + obj.id + '</td>' +
+              '<td>' + obj.name + '</td>' +
+              '<td>' + obj.age + '</td>' +
+              '</tr>';
+          });
+
+          // Append the table rows to the table body
+          $('#data-table tbody').append(tableRows);
+        },
+        error: function(xhr, status, error) {
+          console.log('Error:', error);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

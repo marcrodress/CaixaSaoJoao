@@ -1,0 +1,23 @@
+*body{
+    padding: 0;
+    margin: 0;
+}
+
+.backgroundBandeira{
+    background-image: url(../images/bandeira_background.fw.png);
+    background-repeat: repeat-x;
+}
+
+.backgroundBandeira2{
+    background-image: url(../images/2.fw.png);
+    background-repeat: repeat-x;
+}
+.input{
+    border: 5px;
+    border-color: black;
+}
+
+.linha{
+    border: 1px solid #CCC;
+    border-radius: 10px;
+}

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Caixa - São João - Festa Junina</title>
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/geral.css" rel="stylesheet">
+    <link href="images/logo.fw.png" rel="icon">
+</head>
+
+<body>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="js/funcoesGerais.js"></script>
+    <script>
+
+        function getSituacaoCarrinho() {
+            
+            let situacaoCarrinho = { };
+
+            $.ajax({
+                url: 'informarPagamento.php?p=situacaoCarrinho',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response){
+                    
+                    const total = response.total;
+                    const pago = response.pago;
+                    const aPagar = response.aPagar;
+                    const troco = response.troco;
+
+                    situacaoCarrinho = {
+                        total: response.total,
+                        pago: response.pago,
+                        aPagar: response.aPagar,
+                        troco: response.troco
+                    };
+                },
+            });
+
+            return situacaoCarrinho;
+        }
+
+        var carrinhoAtual = getSituacaoCarrinho();
+        
+        //alert(carrinhoAtual.total);
+
+    </script>
+
+
+
+
+
+
+
+
+
+    <script> // script do switch que pega as funções do formulário
+
+        $("body").on( "keydown", (event)=> {
+           const teclaDigitada = event.which;
+           
+
+            switch(teclaDigitada){
+                case 112:
+                    event.preventDefault();
+                    $("#notaDeTroco").modal('show');
+                break;
+
+
+                case 113:
+                    event.preventDefault();
+                    $("#cadastrarProduto").modal('show');
+                break;
+
+                case 115:
+                    event.preventDefault();
+                    $("#informaPagamentos").modal('show');
+                break;
+                
+                case 117:
+                    event.preventDefault();
+                    var url = "imprimirCarrinho.html";
+                    var nomeDaJanela = "MinhaJanela";
+                    var largura = 450;
+                    var altura = 600;
+                    var esquerda = (window.screen.width - largura) / 2;
+                    var topo = (window.screen.height - altura) / 2;
+
+                    var opcoes = "width=" + largura + ",height=" + altura + ",left=" + esquerda + ",top=" + topo + ",location=no";
+
+                    window.open(url, nomeDaJanela, opcoes);
+                    window.location='';
+                break;
+
+                case 119:
+                    event.preventDefault();
+                    $("#regastarNotaPagamento").modal('show');
+                break;
+                
+                case 115:
+                    event.preventDefault();
+                   
+                    if(total > pago){
+                        $("#informaPagamentos").modal('show');
+                    }else{
+                        alert('O valor total já foi pago, abrir uma tela, ai você pode excluir um pagamento caso tenha feito por erro!');
+                    }
+
+                    
+                    
+
+                break;
+                
+                case 118:
+                    event.preventDefault();
+                    $("#InformarSangria").modal('show');
+                break;
+                
+                case 121:
+                    event.preventDefault();
+                    $("#InformarValorCaixa").modal('show');
+                break;
+                
+                case 1215:
+                break;                 
+            }
+          
+
+        });
+
+    </script>
+
+    <script>
+       
+        $(document).ready(()=>{ 
+            exibirProdutosCaixa();
+            verificaLogin();
+        });
+
+        $(document).on('click', ()=>{ verificaLogin()} );
+
+
+        function verificaLogin(){
+            const login = localStorage.getItem('login');
+            const senha = localStorage.getItem('senha');
+            
+            if(login == null){
+                $("#fazerLogin").modal('show');
+            }else{
+                verifcaCaixa();
+            }
+        }
+        
+        
+        function verifcaCaixa(){
+
+            const login = localStorage.getItem('login');
+            
+            $.ajax({
+                url: 'verificarCaixa.php?login='+login,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response){
+                    if(response == 'Erro'){
+                        $("#InformarValorCaixaInicial").modal('show');
+                    }else{
+                        
+                    }
+                }
+            });
+        }
+
+
+    </script>
+    
+    
+
+    <div class="container-fluid" style="background-color: #555555; color: #fff;">
+        <div class="row">
+            <div class="container mt-3 d-flex justify-content-center d-flex align-items-center">
+                <p style="font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold;">(F4: INFORMAR PAGAMENTOS - F1: NOTA DE TROCO - F8: REGATA NOTA DE TROCO - F6: FINALIZAR VENDA) <=> (F7: SANGRIA - F10: ENCERRAR CAIXA) <=> (F12: LOGOUT)</p> 
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid backgroundBandeira">
+       <div class="container d-flex justify-content-center">
+            <div class="row">
+                <div class="col">
+                    <img style="margin-top: -12px;" src="images/logoani.gif" width="230" height="200">
+                </div>
+            </div>            
+       </div>
+    </div>
+
+    <div class="container">
+        <form>
+            <div class="row">
+                <div class="col-9">
+                    <input type="text" placeholder="Digite o código do produto" name="codigoBusca" id="codigoBusca" autofocus class="form-control form-control-lg"/>
+                </div>
+                <div class="col-2"><input type="text" placeholder="quantidade" id="quantidade" name="quantidade" class="form-control form-control-lg"/></div>
+                <div class="col-1"><button id="buscarProduto" class="btn btn-success form-control-lg">Lançar</button></div>
+            </div>
+        </form>
+        
+        <div class="row mt-3" style="height: 800px;">
+            <div class="col-7">
+                <div class="row" style="border:3px solid blue; border-radius: 5px;">
+                    <div class="row">
+                        <h4 style="font-weight: bold; color: blue;">Produtos adicionados</h4>
+                        <hr>
+                    </div>
+                    
+                    <div class="row"  id="produtoCarrinho">
+                    </div>
+                </div>
+               
+            </div>
+ 
+            <div class="col-4 offset-md-1">
+                <div class="row" id="resumoCaixa" style="border:3px solid orangered; border-radius: 10px;">
+                    
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <div style="height: 80px; position: fixed; bottom: 0;" class="container-fluid backgroundBandeira2 mt-5 mb-0">
+        
+    </div>
+
+    <div class="container-fluid mt-5" style="background-color: #555555; position: fixed; bottom: 0; color: #fff;">
+        <div class="row" style="height:20px;">
+            <div class="container mt-1 d-flex justify-content-center d-flex align-items-center">
+                <p style="font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: bold;">Powered by <a target="_blank" href="http://www.instagram.com/marcrodress">Marc Rodress</a></p> 
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Modal de cadastro de produto -->
+    <div class="modal fade" id="cadastrarProduto" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Cadastrar novo produto</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="mensagemCadastro"></div>
+                <form>
+                    
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" class="form-control" name="codProduto" id="codProduto" placeholder="Digite o código para o produto"/>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col">
+                            <input type="text" class="form-control" name="titulo" id="titulo" placeholder="Digite o titulo do produto"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col">
+                            <input type="text" class="form-control" name="imagem" id="imagem" placeholder="Digite a URL do produto"/>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col"><input class="form-control" type="text" name="estoque" id="estoque" placeholder="Digite o estoque"/></div>
+                        <div class="col"><input class="form-control" type="text" name="preco" id="preco" onkeyup="formatarPreco()" placeholder="Digite o preço"/></div>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" id="enviarCadastrado" class="btn btn-primary">Cadastrar</button>
+            </div>
+
+            <script>
+
+                function formatarPreco() {
+                    var elemento = document.getElementById('preco');
+                    var valor = elemento.value;
+
+                    valor = valor + '';
+                    valor = parseInt(valor.replace(/[\D]+/g, ''));
+                    valor = valor + '';
+                    valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                    if (valor.length > 6) {
+                        valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                    }
+
+                    elemento.value = valor;
+                    if(valor == 'NaN') elemento.value = '';
+
+                    
+                }
+
+                var input = $('#codProduto');
+                input.on('keypress', function(e) {
+                    // Obtendo o código da tecla pressionada
+                    var keyCode = e.which ? e.which : e.keyCode;
+
+                    // Verificando se o caractere digitado não é um número
+                    if (keyCode < 48 || keyCode > 57) {
+                    e.preventDefault(); // Impede a digitação do caractere
+                    }
+                });
+
+
+                var estoque = $('#estoque');
+                estoque.on('keypress', function(e) {
+                    // Obtendo o código da tecla pressionada
+                    var keyCode = e.which ? e.which : e.keyCode;
+
+                    // Verificando se o caractere digitado não é um número
+                    if (keyCode < 48 || keyCode > 57) {
+                    e.preventDefault(); // Impede a digitação do caractere
+                    }
+                });
+
+
+
+
+                $('#enviarCadastrado').on('click', ()=>{
+
+                    
+                    const codProduto = $('#codProduto').val();
+                    const titulo = $('#titulo').val();
+                    const imagem = $('#imagem').val();
+                    const estoque = $('#estoque').val();
+                    const preco = $('#preco').val();
+
+                    $.ajax({
+                        url: 'cadastrarProduto.php',
+                        type: 'POST',
+                        data:{
+                            codProduto: codProduto,
+                            titulo: titulo,
+                            imagem: imagem,
+                            estoque: estoque,
+                            preco: preco,
+                        },
+                        success: function(response){
+
+                           $('#mensagemCadastro').html(response);
+                            
+                           $('#codProduto').val('');
+                           $('#titulo').val('');
+                           $('#imagem').val('');
+                           $('#estoque').val('');
+                           $('#preco').val('');                           
+                        },
+                        error: function(){
+                            alert('Erro ao cadastrar produto!');
+                        }
+                    });
+
+
+
+                });
+            </script>
+
+
+        </div>
+        </div>
+    </div>
+
+   <!-- Modal de Nota de Troco -->
+   <div class="modal fade" id="notaDeTroco" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Emissão de nota de troco</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">            
+            <div class="row">
+                <form id="troco">
+                <div class="col-2 offset-md-3">
+                    <input class="form-control-lg" type="text" id="valorTroco" name="valorTroco" onkeyup="formatarPrecoTroco()" placeholder="Digite o valor" autofocus/>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" id="enviarCadastrado" class="btn btn-primary">Emitir</button>
+        </div>
+                </form>
+
+        <script>
+
+            function formatarPrecoTroco() {
+                var elemento = document.getElementById('valorTroco');
+                var valor = elemento.value;
+
+                valor = valor + '';
+                valor = parseInt(valor.replace(/[\D]+/g, ''));
+                valor = valor + '';
+                valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                if (valor.length > 6) {
+                    valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                }
+
+                elemento.value = valor;
+                if(valor == 'NaN') elemento.value = '';
+
+                
+            }
+
+            var input = $('#codProduto');
+            input.on('keypress', function(e) {
+                // Obtendo o código da tecla pressionada
+                var keyCode = e.which ? e.which : e.keyCode;
+
+                // Verificando se o caractere digitado não é um número
+                if (keyCode < 48 || keyCode > 57) {
+                e.preventDefault(); // Impede a digitação do caractere
+                }
+            });
+
+
+            var estoque = $('#estoque');
+            estoque.on('keypress', function(e) {
+                // Obtendo o código da tecla pressionada
+                var keyCode = e.which ? e.which : e.keyCode;
+
+                // Verificando se o caractere digitado não é um número
+                if (keyCode < 48 || keyCode > 57) {
+                e.preventDefault(); // Impede a digitação do caractere
+                }
+            });
+
+
+
+
+            $('#troco').submit((e) =>{
+
+                
+
+                e.preventDefault();
+                
+                const valorTroco = $('#valorTroco').val();
+
+
+                $.ajax({
+                    url: 'notaTroco.php?p=emitir&operador='+localStorage.getItem('login')+'&valorTroco='+valorTroco,
+                    type: 'GET',
+                    data: {
+                        valorTroco: valorTroco
+                        },
+                    
+                    success: function(response){
+                        if(response){
+                            var url = "imprimirNotaDeTroco.html?nota="+response;
+                            var nomeDaJanela = "NotadeTroco";
+                            var largura = 450;
+                            var altura = 600;
+                            var esquerda = (window.screen.width - largura) / 2;
+                            var topo = (window.screen.height - altura) / 2;
+
+                            var opcoes = "width=" + largura + ",height=" + altura + ",left=" + esquerda + ",top=" + topo + ",location=no";
+
+                            window.open(url, nomeDaJanela, opcoes);
+                            window.location='';
+                        }else{
+                            alert('Erro ao emitir nota de troco!');
+                        }
+                    },
+                    error: function(){
+                        alert('Erro de Json!')
+                    }
+                });
+
+
+
+            });
+        </script>
+
+
+        </div>
+        </div>
+   </div>
+   <!-- Resgatar Nota de Troco -->
+   <div class="modal fade" id="regastarNotaPagamento" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Digite o número da nota para resgate</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col" id="resposta"></div>
+            </div>         
+            <div class="row">
+                <form id="resgata">
+                
+                    <div class="col-2 offset-md-3">
+                    <input class="form-control-lg" type="number" id="valorResgate" name="valorResgate" placeholder="Digite o código de resgate" autofocus/>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Resgatar</button>
+        </div>
+                </form>
+
+        <script>
+
+            $('#resgata').submit((e) =>{
+
+                e.preventDefault();
+                
+                const notaResgate = $('#valorResgate').val();
+
+                $.ajax({
+                    url: 'notaTroco.php?p=resgate&operador='+localStorage.getItem('login')+'&notaResgate='+notaResgate,
+                    type: 'GET',  
+                    success: function(response){
+                        $('#resposta').html(response);
+                        $('#regastarNotaPagamento').modal('hide');
+                    },
+                    error: function(){
+                        alert('Erro de Json!')
+                    }
+                });
+
+            });
+        </script>
+
+
+        </div>
+        </div>
+   </div>
+
+    <!-- Modal que exibe todos os produtos cadastrados -->
+    <div class="modal modal-lg fade" id="exibirProdutosCadastrados" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Produtos/serviços cadastrads</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tr>
+                      <th width="65" rowspan="2" scope="col"><img src="https://cdn.casaeculinaria.com/wp-content/uploads/2023/04/19140328/Creme-de-galinha.webp" width="80" height="80"></th>
+                      <th height="21" colspan="3" scope="col"><input class="form-control" placeholder="DIGITE O TITULO DO PRODUTO" name="textfield" type="text" id="textfield" size="8"></th>
+                      <th width="71" rowspan="2" scope="col"><input class="btn btn-danger" type="submit" name="button" id="button" value="Excluir"></th>
+                    </tr>
+                    <tr>
+                      <td width="151">COD:
+                        <input class="form-control" name="textfield" type="text"  size="8">
+                      </td>
+                      <td width="226">ESTOQUE: 
+                        <input class="form-control" name="textfield2" type="text" size="8">
+                      </td>
+                      <td width="195">PREÇO: 
+                        <input class="form-control" name="textfield3" type="text"  size="8">
+                      </td>
+                    </tr>
+                </table>
+            </div>
+               
+        </div>
+        </div>
+    </div>
+
+    <!-- Modal Informar pagamentos -->
+    <div class="modal fade" id="informaPagamentos" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Informar pagamentos</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formPagamento">
+
+                    <div class="row mb-1">
+                        <div class="col-8">
+                            <select class="form-select form-select-lg" style="color: tomato;" id="informaPagamneto">
+                                <option id="informaPagamneto" value="DINHEIRO">DINHEIRO</option>
+                                <option id="informaPagamneto" value="CREDITO">CARTÃO DE CRÉDITO</option>
+                                <option id="informaPagamneto" value="DEBITO">CARTÃO DE DÉBITO</option>
+                                <option id="informaPagamneto" value="PIX">PIX</option>
+                                <option id="informaPagamneto" value="INTERNO">INTERNO</option>
+                                <option id="informaPagamneto" value="OUTROS">OUTROS</option>
+                            </select>
+                        </div>
+                        <div class="col-1"><input onkeyup="formatarPagamento()" class="form-control-lg" style="width: 120px; color: tomato; text-align: center;" type="text" name="saldoPagar" id="saldoPagar"/></div>
+                </form>
+
+                        <script>
+                            function formatarPagamento() {
+                                var elemento = document.getElementById('saldoPagar');
+                                var valor = elemento.value;
+
+                                valor = valor + '';
+                                valor = parseInt(valor.replace(/[\D]+/g, ''));
+                                valor = valor + '';
+                                valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                                if (valor.length > 6) {
+                                    valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                                }
+
+                                elemento.value = valor;
+                                if(valor == 'NaN') elemento.value = '';
+
+                            }
+
+
+
+                            $('#formPagamento').submit(function(event) {
+
+                                event.preventDefault();
+
+                            
+                                    const opcaoSelecionada = $('#informaPagamneto').val();
+                                    const saldo = $('#saldoPagar').val();
+
+                                    $.ajax({
+                                        url: 'informarPagamento.php?p=informarPagamento',
+                                        type: 'POST',
+                                        data: {
+                                            opcaoSelecionada: opcaoSelecionada,
+                                            saldo: saldo,
+                                        },
+                                        success: function(response){
+
+                                            $.ajax({
+                                                url: 'exibirCaixa.php',
+                                                type: 'GET',
+                                                success: function(){
+                                                    exibirProdutosCaixa();
+                                                    exibirCaixa();
+                                                    $('#saldoPagar').val(null);
+                                                    
+
+
+                                                    //$('#informaPagamentos').modal('hide');
+
+
+                                                }
+                                            });
+
+                                        },
+                                        error: function(response){
+                                            alert('Ocorreu um erro ao enviar pagamento! Tente novamente!');
+                                        }
+                                    });
+                               
+                                    $('#formPagamento')[0].reset()
+
+                            });
+                        </script>
+                    
+                    
+                    </div>
+                  
+
+                <div class="row">
+                    <div class="col">
+                        <div class="row" id="resumofffCaixa" style="border:3px solid orangered; border-radius: 10px;">
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+            <button type="button" id="" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+        </div>
+    </div>    
+    
+     <!-- Modal Login -->
+     <div class="modal fade" id="fazerLogin" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Informe suas credenciais para acesso</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="alertaVermelho"></div>
+                
+                <form id="loginForm">
+
+                    <div class="row">
+                        <input class="form-control-lg" type="text" name="login" autofocus placeholder="Digite seu login" id="login">
+                    </div>
+                    <div class="row mt-3">
+                        <input class="form-control-lg" type="password" name="senha" placeholder="Digite sua senha" id="senha">
+                    </div>
+                   
+
+            </div>
+            <div id="result"></div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" id="verificarAcesso" class="btn btn-success">Entrar</button>
+            </div>
+
+        </form>
+
+
+            <script> // verifica o código de acesso
+                $('#verificarAcesso').on('click', function(event) {
+        
+                    event.preventDefault();
+
+                    const login = $('#login').val();
+                    const senha = $('#senha').val();
+
+                    if(login == null){
+                       alert('Digite o login!');
+                    }else if(senha == null){
+                        alert('Digite a senha!');
+                    }else{
+        
+                        $.ajax({
+                            url: 'verificaLogin.php', // URL do script PHP que processa o login
+                            type: 'POST',
+                            data: {
+                                login: login,
+                                senha: senha
+                            },
+                            dataType: 'json',
+                            success: function(response) {
+                               if(response) {
+
+                                    localStorage.setItem('login', login);
+                                    $("#fazerLogin").modal('hide');
+                                    verifcaCaixa();
+
+                               } else {
+                                    $('#login').val(null);
+                                    $('#senha').val(null);
+                                    alert("Login incorreto");
+                               }
+                               
+                            },
+                            error: function(xhr, status, error) {
+   
+                                console.log('Erro na requisição AJAX:', error);
+                            }
+                        });
+                  }
+                });
+            </script>
+
+
+        </div>
+        </div>
+    </div>
+
+
+     <!-- Modal Informar o caixa inicial -->
+     <div class="modal fade" id="InformarValorCaixaInicial" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Informe o valor inicial no caixa</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row"></div>
+                <form>
+
+                    <div class="row mt-3">
+                        <div class="col-md-1 offset-md-2">
+                            <input class="form-control-lg" type="text" onkeyup="formatarMoeda()" name="saldoEmcaixa" autofocus placeholder="Valor em dinheiro" id="saldoInicial">
+                        </div>
+                    </div>
+                   
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnAbrirCaixa" class="btn btn-success">Abrir Caixa</button>
+            </div>
+
+            <script>
+                
+                function formatarMoeda() {
+                    var elemento = document.getElementById('saldoInicial');
+                    var valor = elemento.value;
+
+                    valor = valor + '';
+                    valor = parseInt(valor.replace(/[\D]+/g, ''));
+                    valor = valor + '';
+                    valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                    if (valor.length > 6) {
+                        valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                    }
+
+                    elemento.value = valor;
+                    if(valor == 'NaN') elemento.value = '';
+
+                    
+                }
+
+                $('#btnAbrirCaixa').on('click',()=>{
+                    
+                   
+                    const saldoEmcaixa = $('#saldoInicial').val();                 
+
+                    $.ajax({
+                        url: 'abrirCaixa.php?valor='+saldoEmcaixa+'&login='+localStorage.getItem('login'),
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response){
+                            $("#InformarValorCaixaInicial").modal('hide');
+                            $('#saldoInicial').val(null);
+                        },
+                        error: function(){
+                            alert('Erro ao abrir caixa');
+                        }
+                    });
+
+                   
+
+                });
+            </script>
+
+
+        </div>
+        </div>
+    </div>
+
+
+     <!-- Modal Fechamento de caixa -->
+     <div class="modal fade" id="InformarValorCaixa" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Fechamento de caixa</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row"></div>
+                <form id="formularioFinalizaCaixa">
+
+                    <div class="row mt-3">
+                        <div class="col-md-1 offset-md-2">
+                            <input autofocus class="form-control-lg" onkeyup="formatarMoedaSaida()" type="text" name="saldoEmcaixa" autofocus placeholder="Valor em dinheiro" id="saldoEmcaixa">
+                        </div>
+                    </div>
+                   
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" id="btnFinalizarCaixa" class="btn btn-success">Finalizar</button>
+            </div>
+
+            <script>
+
+        function formatarMoedaSaida() {
+                    var elemento = document.getElementById('saldoEmcaixa');
+                    var valor = elemento.value;
+
+                    valor = valor + '';
+                    valor = parseInt(valor.replace(/[\D]+/g, ''));
+                    valor = valor + '';
+                    valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                    if (valor.length > 6) {
+                        valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                    }
+
+                    elemento.value = valor;
+                    if(valor == 'NaN') elemento.value = '';
+
+                    
+                }
+
+                $('#btnFinalizarCaixa').on('click',()=>{
+                    
+                    const saldo = $('#saldoEmcaixa').val();
+                    const login = localStorage.getItem('login');
+
+                    if(confirm('Ao encerrar o caixa, não será possível fazer modificações. Deseja realmente encerrar o caixa?')){
+
+                        $.ajax({
+                            url: 'EncerramentoCaixa.php?saldoEmCaixa='+saldo+'&login='+login,
+                            type: 'GET',
+                            success: function(response){
+                                $("#InformarValorCaixa").modal('hide');
+
+                                var url = "imprimirRelatorioFinalCaixa.html";
+                                var nomeDaJanela = "FinalizacaoCaixa";
+                                var largura = 450;
+                                var altura = 600;
+                                var esquerda = (window.screen.width - largura) / 2;
+                                var topo = (window.screen.height - altura) / 2;
+
+                                var opcoes = "width=" + largura + ",height=" + altura + ",left=" + esquerda + ",top=" + topo + ",location=no";
+
+                                window.open(url, nomeDaJanela, opcoes);
+                                $('#saldoEmcaixa').val(null);
+
+                            },
+                            error: function(){
+                                alert('Erro ao enviar requisição de fechamento de caixa!');
+                            }
+                        });
+                    }   
+
+                });
+            </script>
+
+
+        </div>
+        </div>
+     </div>
+    
+
+     <!-- Modal Sangria -->
+     <div class="modal fade" id="InformarSangria" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Informe o valor da sangria</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row"></div>
+                <form>
+
+                    <div class="row mt-3">
+                        <div class="col-md-1 offset-md-2">
+                            <input name="valorSangria" id="valorSangria" autofocus class="form-control-lg" onkeyup="formatarMoedaSangria()" type="text" autofocus placeholder="Valor em dinheiro" >
+                        </div>
+                    </div>
+                   
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" id="btnEfetuarSangria" class="btn btn-success">Finalizar</button>
+            </div>
+
+            <script>
+
+        function formatarMoedaSangria() {
+                    var elemento = document.getElementById('valorSangria');
+                    var valor = elemento.value;
+
+                    valor = valor + '';
+                    valor = parseInt(valor.replace(/[\D]+/g, ''));
+                    valor = valor + '';
+                    valor = valor.replace(/([0-9]{2})$/g, ",$1");
+
+                    if (valor.length > 6) {
+                        valor = valor.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+                    }
+
+                    elemento.value = valor;
+                    if(valor == 'NaN') elemento.value = '';
+
+                    
+                }
+
+                
+                    $('#btnEfetuarSangria').on('click',()=>{
+                        const saldo = $('#valorSangria').val();
+                        const login = localStorage.getItem('login');
+
+                        if(confirm('Atenção: Ao informar a saída de dinheiro por sangria não será possível desfazer. Confirma a sangria no valor de R$ '+saldo+'?')){
+
+                            $.ajax({
+                                url: 'informarSangria.php?valorSangria='+saldo+'&login='+login,
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function(response){
+                                    $("#InformarSangria").modal('hide');
+
+                                    const codeSangria = response;
+
+                                    var url = "imprimirSangria.html?sangria="+codeSangria;
+                                    var nomeDaJanela = "Saída Por Sangria";
+                                    var largura = 450;
+                                    var altura = 600;
+                                    var esquerda = (window.screen.width - largura) / 2;
+                                    var topo = (window.screen.height - altura) / 2;
+
+                                    var opcoes = "width=" + largura + ",height=" + altura + ",left=" + esquerda + ",top=" + topo + ",location=no";
+
+                                    window.open(url, nomeDaJanela, opcoes);
+                                    $('#valorSangria').val(null);
+
+                                },
+                                error: function(){
+                                    alert('Erro ao enviar requisição de sangria de caixa!');
+                                }
+                            });
+                        }   
+
+                    });
+            </script>
+
+
+        </div>
+        </div>
+     </div>
+    
+
+
+    <div class="resultado"> </div>
+    
+
+
+
+
+
+    
+
+
+
+
+    <script> // função que chama os produtos para exibir na tela
+
+        function exibirProdutosCaixa(){
+            $.ajax({
+                    url: 'exibirCaixa.php',
+                    type: 'GET',
+                    success: function(response){
+                    $("#produtoCarrinho").html(response);
+                    exibirCaixa();
+                    },
+                    error: function(response){
+                        alert('erro');
+                    }
+                });
+        }
+    </script>
+
+    <script> // chama função para exibir o caixa
+        function exibirCaixa(){
+
+            $.ajax({
+                url: 'resumoCaixa.php',
+                type: 'GET',
+                success: function(response){
+
+                    $("#resumoCaixa").html(response);
+                    
+                    $("#resumofffCaixa").html(response);
+                }
+            });
+            
+        }
+    </script>
+
+
+
+    <script>
+        $('#buscarProduto').on('click', (e)=>{
+
+            e.preventDefault();
+
+           const codigo = $('#codigoBusca').val();
+           let quantidade = $('#quantidade').val();
+
+            if(quantidade == null || quantidade <0){
+                quantidade = 1;
+            }
+           
+            $.ajax({
+                url: 'carrinho.php?acao=adicionarAoCarinnho&codProduto='+codigo+'&quantidade='+quantidade,
+                type: 'GET',
+                success: function(response){
+                    $(".resultado").html(response);
+                    exibirProdutosCaixa(); 
+                },
+                error: function(response){
+                    alert('erro');
+                }
+            });
+
+           $('#codigoBusca').val(null);
+           $('#quantidade').val(null);
+
+        })
+    </script>
+
+
+
+
+
+
+
+
+
+
+<script> // FUNÇÃO COM A SITUAÇÃO DO CAIXA
+
+</script>
+
+
+
+
+
+
+</body>
+</html>

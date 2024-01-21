@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de finalização de caixa</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <div class="container ">
+        <div class="row d-flex justify-content-center">
+            <div class="col d-flex justify-content-center">
+                <img src="images/logo.fw.png" width="170" height="120">
+            </div>
+        </div>
+        <div class="row">
+            <div id="tabelaFinal" class="col">
+                
+            </div>
+
+            <script>
+
+              $.ajax({
+                url: 'finalizacaoCaixa.php?p=detalhesTotal&login='+localStorage.getItem('login'),
+                type: 'GET',
+                success: function (response) {
+                  $('#tabelaFinal').html(response);
+                 }
+              });
+
+            </script>
+        </div>
+    </div>
+    
+    <script> $(document).ready(() => { print(); }); </script>
+</body>
+</html>

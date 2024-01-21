@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Recibo</title>
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        body{
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+
+    <div class="container">
+        <div class="row">
+            <div class="col d-flex justify-content-center">
+                <img src="images/logo.fw.png" width="100" height="100">
+                
+                
+                
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col d-flex justify-content-center">
+                <h4>E.E.F. DEPUTADO LEORNE BELÉM</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col d-flex justify-content-center">
+                <h6><span id="hora-atual"></span></h6>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col d-flex justify-content-center">
+                <h4>Recibo de compra</h4>
+            </div>
+        </div>
+
+        <div class="row" id="imprimirComprovante">
+                         
+        </div>
+
+        <script>
+            $.ajax({
+                url: 'comprovanteCompra.php?login='+localStorage.getItem('login'),
+                type: 'GET',
+                success: function(response){
+                    $('#imprimirComprovante').html(response);
+                },
+                error: function(response){
+                    alert('Erro ao fechar carrinho de compras!');
+                    window.close();
+                }
+            });
+        </script>
+
+    </div>
+<script>
+ function mostrarDataHora() {
+  var data = new Date();
+  var dia = data.getDate();
+  var mes = data.getMonth() + 1; // Os meses são indexados a partir de 0
+  var ano = data.getFullYear();
+  var hora = data.getHours();
+  var minutos = data.getMinutes();
+  var segundos = data.getSeconds();
+
+  var dataFormatada = dia + "/" + mes + "/" + ano;
+  var horaFormatada = hora + ":" + minutos + ":" + segundos;
+  var dataHoraFormatada = dataFormatada + " " + horaFormatada;
+  
+  // Exibir a data e hora no console
+  console.log(dataHoraFormatada);
+  
+  // Exibir a data e hora em um elemento HTML com o id "data-hora-atual"
+  var elementoDataHora = document.getElementById("hora-atual");
+  if (elementoDataHora) {
+    elementoDataHora.textContent = dataHoraFormatada;
+  }
+}
+
+// Chamar a função inicialmente para mostrar a data e hora
+mostrarDataHora();
+
+// Atualizar a data e hora a cada segundo (1000 milissegundos)
+setInterval(mostrarDataHora, 1000);
+
+</script>
+<script> $(document).ready(() => { print(); }); </script>
+
+</body>
+</html>
